@@ -1,0 +1,58 @@
+/**
+ * @file cspy-sim.mac
+ * @author Felipe Torrezan
+ * @date 2022-08-23
+ * @brief IAR C-SPY Simulation Macros for Arm Cortex-M Microcontrollers
+ *
+ * @license See LICENSE for detailed license information
+ *
+ * For C-SPY Macros documentation refer to
+ * https://netstorage.iar.com/SuppDB/Public/UPDINFO/015020/arm/doc/EWARM_DebuggingGuide.ENU.pdf#page=413 (EWARM 8.50.9)
+ */
+
+__var _brk_0;
+
+execUserSetup() {
+  if ( __driverType("sim") ) {
+    __message "-- C-SPY::execUserSetup(): setting simulation environment.";
+    simSetResetBreakpoint();
+    __registerMacroFile("$PROJ_DIR$/cspy-demo.mac");
+    demoSetBreakpoints();
+  } else {
+    execUserExit();
+  }
+}
+
+/**
+ * @brief Set a Data Breakpoint on the Cortex-M AIRCR register (SYSRESETREQ.bit2)
+ */
+simSetResetBreakpoint() {
+  _brk_0 = __setDataBreak("AIRCR", 0, "1", "TRUE", "W", "simReset()");
+  if ( !_brk_0 ) {
+    __message "-- C-SPY::simSetResetBreakpoint(): error setting data breakpoint for execSimReset().";
+    execUserExit();
+  }
+}
+
+/**
+ * @brief Log a message when _brk_0 was triggered
+ */
+simReset() {
+  __message "-- C-SPY::simReset(): AIRCR reset requested - resetting simulation.";
+  execUserReset();
+}
+
+execUserReset() {
+  if ( __driverType("sim") ) {
+    PC = &__iar_program_start;
+    /* ... other desired actions for the simulation reset */
+  }
+}
+
+execUserExit() {
+  if ( __driverType("sim") ) {
+    __message "-- CSPY::execUserExit(): unsetting simulation breakpoints.";
+    __clearBreak( _brk_0 );
+    demoClearBreak();
+  }
+}

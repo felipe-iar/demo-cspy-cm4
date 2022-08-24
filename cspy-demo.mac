@@ -1,0 +1,53 @@
+/**
+ * @file cspy-demo.mac
+ * @author Felipe Torrezan
+ * @date 2022-08-23
+ * @brief IAR C-SPY Macros used in demo.c
+ *
+ * @license See LICENSE for detailed license information
+ *
+ * For C-SPY Macros documentation refer to
+ * https://netstorage.iar.com/SuppDB/Public/UPDINFO/015020/arm/doc/EWARM_DebuggingGuide.ENU.pdf#page=413 (EWARM 8.50.9)
+ */
+
+__var _brk_1;
+__var _brk_2;
+__var _brk_3;
+
+/**
+ * @brief Programmatically set demo-specific breakpoints
+ */
+demoSetBreakpoints() {
+  _brk_1 = __setCodeBreak("{demo.c}.17", 0, "1", "TRUE", "");
+  if ( !_brk_1 ) {
+    __message "-- C-SPY::demoSetBreakpoints(): error setting code breakpoint at {demo.c}.17.";
+    execUserExit();
+  } 
+  _brk_2 = __setDataBreak("wdt", 0, "wdt % 2500 == 0 && wdt != 0", "TRUE", "W", "demoShowVar()");
+  if ( !_brk_2 ) {
+    __message "-- C-SPY::demoSetBreakpoints(): error setting data breakpoint for wdt.";
+    execUserExit();
+  }
+  _brk_3 = __setCodeBreak("{demo.c}.21", 0, "1", "TRUE", "");
+  if ( !_brk_3 ) {
+    __message "-- C-SPY::demoSetBreakpoints(): error setting code breakpoint at {demo.c}.21.";
+    execUserExit();
+  }
+}
+
+/**
+ * @brief Show the value of wdt (action for _brk_2)
+ */
+demoShowVar() {
+  __message "-- CSPY::demoShowVar(): current value of wdt is ", wdt, ".";
+}
+
+/**
+ * @brief Clear demo-specific breakpoints
+ */
+demoClearBreak() {
+  __message "-- C-SPY::demoClearBreak(): unsetting demo breakpoints.";
+  __clearBreak( _brk_1 );
+  __clearBreak( _brk_2 );
+  __clearBreak( _brk_3 );
+}
